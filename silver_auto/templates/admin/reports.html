@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <h6 class="text-white text-center mb-3"><i class="bi bi-shield-lock"></i> Admin Panel</h6>
+            <a href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="{% url 'all_requests' %}"><i class="bi bi-clipboard-list"></i> Service Requests</a>
+            <a href="{% url 'manage_mechanics' %}"><i class="bi bi-wrench"></i> Mechanics</a>
+            <a href="{% url 'manage_customers' %}"><i class="bi bi-people"></i> Customers</a>
+            <a href="{% url 'all_vehicles' %}"><i class="bi bi-car-front"></i> Vehicles</a>
+            <a href="{% url 'inventory_list' %}"><i class="bi bi-box-seam"></i> Inventory</a>
+            <a href="{% url 'parts_list' %}"><i class="bi bi-gear"></i> Parts</a>
+            <a href="{% url 'supplier_list' %}"><i class="bi bi-truck"></i> Suppliers</a>
+            <a href="{% url 'all_pickups' %}"><i class="bi bi-car-front-fill"></i> Pickup & Drop</a>
+            <a href="{% url 'manage_attendance' %}"><i class="bi bi-calendar-check"></i> Attendance</a>
+            <a href="{% url 'manage_salary' %}"><i class="bi bi-cash-coin"></i> Salary</a>
+            <a href="{% url 'all_feedback' %}"><i class="bi bi-star"></i> Feedback</a>
+            <a href="{% url 'reports' %}" class="active"><i class="bi bi-bar-chart"></i> Reports</a>
+        </div>
+        <div class="col-md-10 p-4">
+            <h3 class="mb-4"><i class="bi bi-bar-chart"></i> Reports</h3>
+
+            <!-- SUMMARY CARDS -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card p-3 text-center">
+                        <i class="bi bi-people" style="font-size:2rem; color:#e94560;"></i>
+                        <h3>{{ total_customers }}</h3>
+                        <small class="text-muted">Total Customers</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card p-3 text-center">
+                        <i class="bi bi-wrench" style="font-size:2rem; color:#e94560;"></i>
+                        <h3>{{ total_mechanics }}</h3>
+                        <small class="text-muted">Total Mechanics</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card p-3 text-center">
+                        <i class="bi bi-clipboard-check" style="font-size:2rem; color:#e94560;"></i>
+                        <h3>{{ completed_requests }}</h3>
+                        <small class="text-muted">Completed Services</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card p-3 text-center">
+                        <i class="bi bi-cash-coin" style="font-size:2rem; color:#e94560;"></i>
+                        <h3>Rs. {{ total_revenue }}</h3>
+                        <small class="text-muted">Total Revenue</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SERVICE REPORT -->
+            <div class="card mb-4">
+                <div class="card-header" style="background:#1a1a2e; color:white;">
+                    <h5 class="mb-0"><i class="bi bi-clipboard-list"></i> Service Report</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Customer</th>
+                                <th>Vehicle</th>
+                                <th>Problem</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in all_requests %}
+                            <tr>
+                                <td>{{ req.id }}</td>
+                                <td>{{ req.customer.full_name }}</td>
+                                <td>{{ req.vehicle.brand }} {{ req.vehicle.model }}</td>
+                                <td>{{ req.problem_description|truncatechars:30 }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if req.service_status == 'Pending' %}bg-warning text-dark
+                                        {% elif req.service_status == 'Approved' %}bg-success
+                                        {% elif req.service_status == 'Rejected' %}bg-danger
+                                        {% elif req.service_status == 'Completed' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ req.service_status }}
+                                    </span>
+                                </td>
+                                <td>{{ req.request_date }}</td>
+                                <td>Rs. {{ req.estimated_price }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="text-center text-muted">No records</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAYMENT REPORT -->
+            <div class="card mb-4">
+                <div class="card-header" style="background:#1a1a2e; color:white;">
+                    <h5 class="mb-0"><i class="bi bi-cash"></i> Payment Report</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Invoice ID</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in all_payments %}
+                            <tr>
+                                <td>{{ p.id }}</td>
+                                <td>#{{ p.invoice.id }}</td>
+                                <td>Rs. {{ p.invoice.grand_total }}</td>
+                                <td>{{ p.payment_method }}</td>
+                                <td>
+                                    <span class="badge {% if p.payment_status == 'Success' %}bg-success{% elif p.payment_status == 'Pending' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                        {{ p.payment_status }}
+                                    </span>
+                                </td>
+                                <td>{{ p.payment_date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center text-muted">No payments yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- INVENTORY REPORT -->
+            <div class="card">
+                <div class="card-header" style="background:#1a1a2e; color:white;">
+                    <h5 class="mb-0"><i class="bi bi-box-seam"></i> Inventory Report</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Part Name</th>
+                                <th>Vehicle Type</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in all_stocks %}
+                            <tr>
+                                <td>{{ stock.id }}</td>
+                                <td>{{ stock.part.part_name }}</td>
+                                <td>{{ stock.part.vehicle_type }}</td>
+                                <td>Rs. {{ stock.part.price }}</td>
+                                <td>{{ stock.quantity }}</td>
+                                <td>
+                                    {% if stock.is_low_stock %}
+                                    <span class="badge bg-danger">Low Stock</span>
+                                    {% else %}
+                                    <span class="badge bg-success">OK</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center text-muted">No inventory records</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white text-center" style="background:#1a1a2e;">
+                    <h4><i class="bi bi-receipt"></i> Invoice #{{ invoice.id }}</h4>
+                    <small>Silver Auto - Vehicle Service Management</small>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Customer:</strong><br>{{ invoice.request.customer.full_name }}
+                        </div>
+                        <div class="col-6">
+                            <strong>Date:</strong><br>{{ invoice.invoice_date }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Vehicle:</strong><br>{{ invoice.request.vehicle.brand }} {{ invoice.request.vehicle.model }}
+                        </div>
+                        <div class="col-6">
+                            <strong>Vehicle No:</strong><br>{{ invoice.request.vehicle.vehicle_number }}
+                        </div>
+                    </div>
+                    <hr>
+                    <table class="table">
+                        <tr>
+                            <td>Service Amount</td>
+                            <td class="text-end">Rs. {{ invoice.total_amount }}</td>
+                        </tr>
+                        <tr>
+                            <td>GST (18%)</td>
+                            <td class="text-end">Rs. {{ invoice.tax_amount }}</td>
+                        </tr>
+                        <tr class="table-dark">
+                            <td><strong>Grand Total</strong></td>
+                            <td class="text-end"><strong>Rs. {{ invoice.grand_total }}</strong></td>
+                        </tr>
+                    </table>
+                    {% if payment %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> Payment done via {{ payment.payment_method }}
+                    </div>
+                    {% else %}
+                    <a href="{% url 'make_payment' invoice.id %}" class="btn btn-primary w-100">
+                        <i class="bi bi-credit-card"></i> Make Payment
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

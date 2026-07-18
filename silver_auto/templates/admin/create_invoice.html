@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header text-white" style="background:#1a1a2e;">
+                    <h4><i class="bi bi-receipt"></i> Create Invoice</h4>
+                </div>
+                <div class="card-body p-4">
+                    <p><strong>Customer:</strong> {{ service_req.customer.full_name }}</p>
+                    <p><strong>Vehicle:</strong> {{ service_req.vehicle.brand }} {{ service_req.vehicle.model }}</p>
+                    <p><strong>Problem:</strong> {{ service_req.problem_description }}</p>
+                    <hr>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Total Amount (Rs.)</label>
+                            <input type="number" name="total_amount" class="form-control" value="{{ service_req.estimated_price }}" required>
+                        </div>
+                        <small class="text-muted">18% GST will be added automatically</small>
+                        <button type="submit" class="btn btn-primary w-100 mt-3">
+                            <i class="bi bi-receipt"></i> Generate Invoice
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

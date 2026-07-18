@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <h6 class="text-white text-center mb-3"><i class="bi bi-shield-lock"></i> Admin Panel</h6>
+            <a href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="{% url 'all_requests' %}" class="active"><i class="bi bi-clipboard-list"></i> Service Requests</a>
+            <a href="{% url 'manage_mechanics' %}"><i class="bi bi-wrench"></i> Mechanics</a>
+            <a href="{% url 'manage_customers' %}"><i class="bi bi-people"></i> Customers</a>
+            <a href="{% url 'all_vehicles' %}"><i class="bi bi-car-front"></i> Vehicles</a>
+            <a href="{% url 'inventory_list' %}"><i class="bi bi-box-seam"></i> Inventory</a>
+            <a href="{% url 'parts_list' %}"><i class="bi bi-gear"></i> Parts</a>
+            <a href="{% url 'supplier_list' %}"><i class="bi bi-truck"></i> Suppliers</a>
+            <a href="{% url 'all_pickups' %}"><i class="bi bi-car-front-fill"></i> Pickup & Drop</a>
+            <a href="{% url 'manage_attendance' %}"><i class="bi bi-calendar-check"></i> Attendance</a>
+            <a href="{% url 'manage_salary' %}"><i class="bi bi-cash-coin"></i> Salary</a>
+            <a href="{% url 'all_feedback' %}"><i class="bi bi-star"></i> Feedback</a>
+        </div>
+        <div class="col-md-10 p-4">
+            <h3 class="mb-4"><i class="bi bi-clipboard-list"></i> All Service Requests</h3>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Customer</th>
+                                <th>Vehicle</th>
+                                <th>Problem</th>
+                                <th>Est. Price</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in requests %}
+                            <tr>
+                                <td>{{ req.id }}</td>
+                                <td>{{ req.customer.full_name }}</td>
+                                <td>{{ req.vehicle.brand }} {{ req.vehicle.model }}<br>
+                                    <small class="text-muted">{{ req.vehicle.vehicle_number }}</small>
+                                </td>
+                                <td>{{ req.problem_description|truncatechars:40 }}</td>
+                                <td>Rs. {{ req.estimated_price }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if req.service_status == 'Pending' %}bg-warning text-dark
+                                        {% elif req.service_status == 'Approved' %}bg-success
+                                        {% elif req.service_status == 'Rejected' %}bg-danger
+                                        {% elif req.service_status == 'Completed' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ req.service_status }}
+                                    </span>
+                                </td>
+                                <td>{{ req.request_date }}</td>
+                                <td>
+                                    {% if req.service_status == 'Pending' %}
+                                    <a href="{% url 'approve_request' req.id %}" class="btn btn-success btn-sm">Approve</a>
+                                    <a href="{% url 'reject_request' req.id %}" class="btn btn-danger btn-sm">Reject</a>
+                                    {% elif req.service_status == 'Approved' %}
+                                    <form method="POST" action="{% url 'assign_mechanic' req.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <select name="mechanic_id" class="form-select form-select-sm d-inline w-auto">
+                                            {% for m in mechanics %}
+                                            <option value="{{ m.id }}">{{ m.full_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-primary btn-sm">Assign</button>
+                                    </form>
+                                    {% elif req.service_status == 'Completed' %}
+                                    <a href="{% url 'create_invoice' req.id %}" class="btn btn-info btn-sm">Invoice</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="8" class="text-center text-muted">No requests found</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

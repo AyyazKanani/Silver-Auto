@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- SIDEBAR -->
+        <div class="col-md-2 sidebar">
+            <h6 class="text-white text-center mb-3"><i class="bi bi-shield-lock"></i> Admin Panel</h6>
+            <a href="{% url 'admin_dashboard' %}" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="{% url 'all_requests' %}"><i class="bi bi-clipboard-list"></i> Service Requests</a>
+            <a href="{% url 'manage_mechanics' %}"><i class="bi bi-wrench"></i> Mechanics</a>
+            <a href="{% url 'manage_customers' %}"><i class="bi bi-people"></i> Customers</a>
+            <a href="{% url 'all_vehicles' %}"><i class="bi bi-car-front"></i> Vehicles</a>
+            <a href="{% url 'inventory_list' %}"><i class="bi bi-box-seam"></i> Inventory</a>
+            <a href="{% url 'parts_list' %}"><i class="bi bi-gear"></i> Parts</a>
+            <a href="{% url 'supplier_list' %}"><i class="bi bi-truck"></i> Suppliers</a>
+            <a href="{% url 'all_pickups' %}"><i class="bi bi-car-front-fill"></i> Pickup & Drop</a>
+            <a href="{% url 'manage_attendance' %}"><i class="bi bi-calendar-check"></i> Attendance</a>
+            <a href="{% url 'manage_salary' %}"><i class="bi bi-cash-coin"></i> Salary</a>
+            <a href="{% url 'all_feedback' %}"><i class="bi bi-star"></i> Feedback</a>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="col-md-10 p-4">
+            <h3 class="mb-4"><i class="bi bi-speedometer2"></i> Admin Dashboard</h3>
+
+            <!-- STAT CARDS -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <small class="text-muted">Total Customers</small>
+                                <h3>{{ total_customers }}</h3>
+                            </div>
+                            <i class="bi bi-people" style="font-size:2.5rem; color:#e94560;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <small class="text-muted">Active Mechanics</small>
+                                <h3>{{ total_mechanics }}</h3>
+                            </div>
+                            <i class="bi bi-wrench" style="font-size:2.5rem; color:#e94560;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <small class="text-muted">Pending Requests</small>
+                                <h3>{{ pending_requests }}</h3>
+                            </div>
+                            <i class="bi bi-clock" style="font-size:2.5rem; color:#ffc107;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <small class="text-muted">Low Stock Items</small>
+                                <h3>{{ low_stock }}</h3>
+                            </div>
+                            <i class="bi bi-exclamation-triangle" style="font-size:2.5rem; color:#dc3545;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECENT REQUESTS -->
+            <div class="card">
+                <div class="card-header" style="background:#1a1a2e; color:white;">
+                    <h5 class="mb-0"><i class="bi bi-clipboard-list"></i> Recent Service Requests</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Customer</th>
+                                <th>Vehicle</th>
+                                <th>Problem</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in recent_requests %}
+                            <tr>
+                                <td>{{ req.id }}</td>
+                                <td>{{ req.customer.full_name }}</td>
+                                <td>{{ req.vehicle.brand }} {{ req.vehicle.model }}</td>
+                                <td>{{ req.problem_description|truncatechars:30 }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if req.service_status == 'Pending' %}bg-warning text-dark
+                                        {% elif req.service_status == 'Approved' %}bg-success
+                                        {% elif req.service_status == 'Rejected' %}bg-danger
+                                        {% elif req.service_status == 'Completed' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ req.service_status }}
+                                    </span>
+                                </td>
+                                <td>{{ req.request_date }}</td>
+                                <td>
+                                    <a href="{% url 'all_requests' %}" class="btn btn-sm btn-primary">View</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="text-center text-muted">No requests yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

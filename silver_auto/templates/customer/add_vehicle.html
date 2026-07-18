@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <h6 class="text-white text-center mb-3"><i class="bi bi-person-circle"></i> Customer Panel</h6>
+            <a href="{% url 'customer_dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="{% url 'my_requests' %}"><i class="bi bi-clipboard-list"></i> My Requests</a>
+            <a href="{% url 'create_request' %}"><i class="bi bi-plus-circle"></i> New Request</a>
+            <a href="{% url 'my_vehicles' %}"><i class="bi bi-car-front"></i> My Vehicles</a>
+            <a href="{% url 'add_vehicle' %}" class="active"><i class="bi bi-plus"></i> Add Vehicle</a>
+        </div>
+        <div class="col-md-10 p-4">
+            <h3 class="mb-4"><i class="bi bi-plus"></i> Add Vehicle</h3>
+            <div class="card">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Vehicle Number</label>
+                            <input type="text" name="vehicle_number" class="form-control" placeholder="e.g. GJ01AX1234" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Vehicle Type</label>
+                            <select name="vehicle_type_id" class="form-select" required>
+                                {% for vt in vehicle_types %}
+                                <option value="{{ vt.id }}">{{ vt.type_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Brand</label>
+                            <input type="text" name="brand" class="form-control" placeholder="e.g. Hero, Maruti" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Model</label>
+                            <input type="text" name="model" class="form-control" placeholder="e.g. Splendor, Swift" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Registration Year</label>
+                            <input type="number" name="registration_year" class="form-control" placeholder="e.g. 2020" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus"></i> Add Vehicle
+                        </button>
+                        <a href="{% url 'my_vehicles' %}" class="btn btn-secondary ms-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

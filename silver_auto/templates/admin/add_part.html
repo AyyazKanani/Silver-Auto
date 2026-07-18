@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header text-white" style="background:#1a1a2e;">
+                    <h4><i class="bi bi-gear"></i> Add New Part</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Part Name</label>
+                            <input type="text" name="part_name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Vehicle Type</label>
+                            <select name="vehicle_type" class="form-select" required>
+                                <option value="Bike">Bike</option>
+                                <option value="Car">Car</option>
+                                <option value="Three-Wheeler">Three-Wheeler</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Price (Rs.)</label>
+                            <input type="number" name="price" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus"></i> Add Part
+                        </button>
+                        <a href="{% url 'parts_list' %}" class="btn btn-secondary w-100 mt-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

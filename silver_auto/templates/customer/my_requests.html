@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <h6 class="text-white text-center mb-3"><i class="bi bi-person-circle"></i> Customer Panel</h6>
+            <a href="{% url 'customer_dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="{% url 'my_requests' %}" class="active"><i class="bi bi-clipboard-list"></i> My Requests</a>
+            <a href="{% url 'create_request' %}"><i class="bi bi-plus-circle"></i> New Request</a>
+            <a href="{% url 'my_vehicles' %}"><i class="bi bi-car-front"></i> My Vehicles</a>
+            <a href="{% url 'add_vehicle' %}"><i class="bi bi-plus"></i> Add Vehicle</a>
+        </div>
+        <div class="col-md-10 p-4">
+            <h3 class="mb-4"><i class="bi bi-clipboard-list"></i> My Service Requests</h3>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Vehicle</th>
+                                <th>Problem</th>
+                                <th>Est. Price</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in requests %}
+                            <tr>
+                                <td>{{ req.id }}</td>
+                                <td>{{ req.vehicle.brand }} {{ req.vehicle.model }}</td>
+                                <td>{{ req.problem_description|truncatechars:35 }}</td>
+                                <td>Rs. {{ req.estimated_price }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if req.service_status == 'Pending' %}bg-warning text-dark
+                                        {% elif req.service_status == 'Approved' %}bg-success
+                                        {% elif req.service_status == 'Rejected' %}bg-danger
+                                        {% elif req.service_status == 'Completed' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ req.service_status }}
+                                    </span>
+                                </td>
+                                <td>{{ req.request_date }}</td>
+                                <td>
+                                    {% if req.service_status == 'Approved' %}
+                                    <a href="{% url 'request_pickup' req.id %}" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-car-front"></i> Pickup
+                                    </a>
+                                    {% endif %}
+                                    {% if req.service_status == 'Completed' %}
+                                    <a href="{% url 'submit_feedback' req.id %}" class="btn btn-sm btn-success">
+                                        <i class="bi bi-star"></i> Feedback
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="text-center text-muted">No requests found</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

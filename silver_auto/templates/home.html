@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 style="color:#e94560; font-size:3rem; font-weight:bold;">
+                <i class="bi bi-tools"></i> Silver Auto
+            </h1>
+            <p class="lead text-muted">Vehicle Service Management System</p>
+            <hr>
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card text-center p-3">
+                        <i class="bi bi-person-circle" style="font-size:2.5rem; color:#e94560;"></i>
+                        <h5 class="mt-2">Customer</h5>
+                        <p class="text-muted small">Book services, track status</p>
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Login</a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center p-3">
+                        <i class="bi bi-wrench-adjustable" style="font-size:2.5rem; color:#e94560;"></i>
+                        <h5 class="mt-2">Mechanic</h5>
+                        <p class="text-muted small">View jobs, update status</p>
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Login</a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center p-3">
+                        <i class="bi bi-shield-lock" style="font-size:2.5rem; color:#e94560;"></i>
+                        <h5 class="mt-2">Admin</h5>
+                        <p class="text-muted small">Manage everything</p>
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Login</a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'register' %}" class="btn btn-outline-danger me-2">
+                    <i class="bi bi-person-plus"></i> Register as Customer
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

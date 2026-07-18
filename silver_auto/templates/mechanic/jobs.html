@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <h6 class="text-white text-center mb-3"><i class="bi bi-wrench"></i> Mechanic Panel</h6>
+            <a href="{% url 'mechanic_dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="{% url 'mechanic_jobs' %}" class="active"><i class="bi bi-clipboard-list"></i> My Jobs</a>
+        </div>
+        <div class="col-md-10 p-4">
+            <h3 class="mb-4"><i class="bi bi-clipboard-list"></i> My Jobs</h3>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Customer</th>
+                                <th>Vehicle</th>
+                                <th>Problem</th>
+                                <th>Status</th>
+                                <th>Assigned</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in assignments %}
+                            <tr>
+                                <td>{{ a.id }}</td>
+                                <td>{{ a.request.customer.full_name }}</td>
+                                <td>{{ a.request.vehicle.brand }} {{ a.request.vehicle.model }}</td>
+                                <td>{{ a.request.problem_description|truncatechars:30 }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if a.request.service_status == 'In Progress' %}bg-warning text-dark
+                                        {% elif a.request.service_status == 'Completed' %}bg-success
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ a.request.service_status }}
+                                    </span>
+                                </td>
+                                <td>{{ a.assigned_date }}</td>
+                                <td>
+                                    {% if a.request.service_status != 'Completed' %}
+                                    <form method="POST" action="{% url 'update_job' a.id %}">
+                                        {% csrf_token %}
+                                        <select name="status" class="form-select form-select-sm d-inline w-auto">
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Completed">Completed</option>
+                                        </select>
+                                        <input type="text" name="notes" class="form-control form-control-sm d-inline w-auto" placeholder="Repair notes">
+                                        <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-success"><i class="bi bi-check-circle"></i> Done</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="text-center text-muted">No jobs assigned</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

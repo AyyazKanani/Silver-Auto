@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <h6 class="text-white text-center mb-3"><i class="bi bi-wrench"></i> Mechanic Panel</h6>
+            <a href="{% url 'mechanic_dashboard' %}" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="{% url 'mechanic_jobs' %}"><i class="bi bi-clipboard-list"></i> My Jobs</a>
+        </div>
+        <div class="col-md-10 p-4">
+            <h3 class="mb-4"><i class="bi bi-wrench"></i> Welcome, {{ mechanic.full_name }}!</h3>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <small class="text-muted">Assigned Jobs</small>
+                                <h3>{{ assignments.count }}</h3>
+                            </div>
+                            <i class="bi bi-clipboard-list" style="font-size:2.5rem; color:#e94560;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <small class="text-muted">My Skills</small>
+                                <p class="mb-0">{{ mechanic.skills }}</p>
+                            </div>
+                            <i class="bi bi-tools" style="font-size:2.5rem; color:#e94560;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card p-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <small class="text-muted">Status</small>
+                                <span class="badge bg-success">{{ mechanic.account_status }}</span>
+                            </div>
+                            <i class="bi bi-person-check" style="font-size:2.5rem; color:#e94560;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECENT ATTENDANCE -->
+            <div class="card mb-4">
+                <div class="card-header" style="background:#1a1a2e; color:white;">
+                    <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Recent Attendance</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in attendance %}
+                            <tr>
+                                <td>{{ a.date }}</td>
+                                <td>
+                                    <span class="badge {% if a.status == 'Present' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ a.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" class="text-center text-muted">No attendance records</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- RECENT JOBS -->
+            <div class="card">
+                <div class="card-header" style="background:#1a1a2e; color:white;">
+                    <h5 class="mb-0"><i class="bi bi-clipboard-list"></i> Recent Jobs</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Customer</th>
+                                <th>Vehicle</th>
+                                <th>Problem</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in assignments %}
+                            <tr>
+                                <td>{{ a.id }}</td>
+                                <td>{{ a.request.customer.full_name }}</td>
+                                <td>{{ a.request.vehicle.brand }} {{ a.request.vehicle.model }}</td>
+                                <td>{{ a.request.problem_description|truncatechars:30 }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if a.request.service_status == 'In Progress' %}bg-warning text-dark
+                                        {% elif a.request.service_status == 'Completed' %}bg-success
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ a.request.service_status }}
+                                    </span>
+                                </td>
+                                <td>{{ a.assigned_date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-center text-muted">No jobs assigned yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <a href="{% url 'mechanic_jobs' %}" class="btn btn-primary mt-2">View All Jobs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar">
+            <h6 class="text-white text-center mb-3"><i class="bi bi-shield-lock"></i> Admin Panel</h6>
+            <a href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="{% url 'all_requests' %}"><i class="bi bi-clipboard-list"></i> Service Requests</a>
+            <a href="{% url 'manage_mechanics' %}"><i class="bi bi-wrench"></i> Mechanics</a>
+            <a href="{% url 'manage_customers' %}"><i class="bi bi-people"></i> Customers</a>
+            <a href="{% url 'all_vehicles' %}"><i class="bi bi-car-front"></i> Vehicles</a>
+            <a href="{% url 'inventory_list' %}" class="active"><i class="bi bi-box-seam"></i> Inventory</a>
+            <a href="{% url 'parts_list' %}"><i class="bi bi-gear"></i> Parts</a>
+            <a href="{% url 'supplier_list' %}"><i class="bi bi-truck"></i> Suppliers</a>
+            <a href="{% url 'all_pickups' %}"><i class="bi bi-car-front-fill"></i> Pickup & Drop</a>
+            <a href="{% url 'manage_attendance' %}"><i class="bi bi-calendar-check"></i> Attendance</a>
+            <a href="{% url 'manage_salary' %}"><i class="bi bi-cash-coin"></i> Salary</a>
+            <a href="{% url 'all_feedback' %}"><i class="bi bi-star"></i> Feedback</a>
+        </div>
+        <div class="col-md-10 p-4">
+            <h3 class="mb-4"><i class="bi bi-box-seam"></i> Inventory Management</h3>
+            {% if low_stock %}
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i> <strong>Low Stock Alert!</strong> {{ low_stock|length }} item(s) need restocking!
+            </div>
+            {% endif %}
+            <div class="card">
+                <div class="card-header" style="background:#1a1a2e; color:white;">
+                    <h5 class="mb-0">Stock List</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>Part Name</th>
+                                <th>Supplier</th>
+                                <th>Quantity</th>
+                                <th>Reorder Level</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in stocks %}
+                            <tr>
+                                <td>{{ stock.id }}</td>
+                                <td>{{ stock.part.part_name }}</td>
+                                <td>{{ stock.supplier.supplier_name }}</td>
+                                <td>{{ stock.quantity }}</td>
+                                <td>{{ stock.reorder_level }}</td>
+                                <td>
+                                    {% if stock.is_low_stock %}
+                                    <span class="badge bg-danger">Low Stock</span>
+                                    {% else %}
+                                    <span class="badge bg-success">OK</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="POST" action="{% url 'update_stock' stock.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="number" name="quantity" value="{{ stock.quantity }}" class="form-control form-control-sm d-inline w-25">
+                                        <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="7" class="text-center text-muted">No stock records</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
