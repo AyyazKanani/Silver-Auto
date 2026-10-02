@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from accounts.models import Customer, Mechanic, Driver
 from vehicles.models import Vehicle
@@ -92,7 +93,7 @@ class Payment(models.Model):
 class Feedback(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     request = models.ForeignKey(ServiceRequest, on_delete=models.CASCADE)
-    rating = models.IntegerField()
+    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     message = models.TextField()
     feedback_date = models.DateField(auto_now_add=True)
 

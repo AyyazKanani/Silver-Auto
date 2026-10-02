@@ -21,10 +21,23 @@ def add_part(request):
     if not request.user.is_superuser:
         return redirect('home')
     if request.method == 'POST':
+        part_name = request.POST.get('part_name', '').strip()
+        vehicle_type = request.POST.get('vehicle_type', '').strip()
+        price = request.POST.get('price')
+        if not part_name or not vehicle_type or not price:
+            messages.error(request, 'Please fill in all part fields.')
+            return render(request, 'admin/add_part.html')
+        try:
+            price_value = float(price)
+            if price_value <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            messages.error(request, 'Please enter a valid positive price.')
+            return render(request, 'admin/add_part.html')
         Part.objects.create(
-            part_name=request.POST['part_name'],
-            vehicle_type=request.POST['vehicle_type'],
-            price=request.POST['price'],
+            part_name=part_name,
+            vehicle_type=vehicle_type,
+            price=price_value,
         )
         messages.success(request, 'Part added!')
         return redirect('parts_list')
@@ -42,11 +55,18 @@ def add_supplier(request):
     if not request.user.is_superuser:
         return redirect('home')
     if request.method == 'POST':
+        supplier_name = request.POST.get('supplier_name', '').strip()
+        contact_number = request.POST.get('contact_number', '').strip()
+        email = request.POST.get('email', '').strip()
+        address = request.POST.get('address', '').strip()
+        if not supplier_name or not contact_number or not address:
+            messages.error(request, 'Please fill in all required supplier fields.')
+            return render(request, 'admin/add_supplier.html')
         Supplier.objects.create(
-            supplier_name=request.POST['supplier_name'],
-            contact_number=request.POST['contact_number'],
-            email=request.POST.get('email', ''),
-            address=request.POST['address'],
+            supplier_name=supplier_name,
+            contact_number=contact_number,
+            email=email,
+            address=address,
         )
         messages.success(request, 'Supplier added!')
         return redirect('supplier_list')
@@ -58,7 +78,14 @@ def update_stock(request, pk):
         return redirect('home')
     if request.method == 'POST':
         stock = get_object_or_404(InventoryStock, pk=pk)
-        stock.quantity = request.POST['quantity']
+        try:
+            quantity = int(request.POST.get('quantity', 0))
+            if quantity < 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            messages.error(request, 'Please enter a valid non-negative quantity.')
+            return redirect('inventory_list')
+        stock.quantity = quantity
         stock.save()
         messages.success(request, 'Stock updated!')
     return redirect('inventory_list')
@@ -66,8 +93,17 @@ def update_stock(request, pk):
 @login_required
 def sell_part(request):
     if request.method == 'POST':
-        part_id = request.POST['part_id']
-        quantity = int(request.POST['quantity'])
+        part_id = request.POST.get('part_id')
+        try:
+            quantity = int(request.POST.get('quantity', 0))
+            if quantity <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            messages.error(request, 'Please enter a valid positive quantity.')
+            return redirect('parts_list')
+        if not part_id:
+            messages.error(request, 'Please select a part.')
+            return redirect('parts_list')
         part = get_object_or_404(Part, pk=part_id)
         stock = InventoryStock.objects.filter(part=part).first()
         if stock and stock.quantity >= quantity:

@@ -10,8 +10,11 @@ def home(request):
 
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        if not username or not password:
+            messages.error(request, 'Please enter both username and password.')
+            return render(request, 'login.html')
         user = authenticate(request, username=username, password=password)
         if user:
             login(request, user)
@@ -36,14 +39,20 @@ def logout_view(request):
 
 def register_customer(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        full_name = request.POST['full_name']
-        mobile_number = request.POST['mobile_number']
-        address = request.POST['address']
-        city = request.POST.get('city', 'Ahmedabad')
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        full_name = request.POST.get('full_name', '').strip()
+        mobile_number = request.POST.get('mobile_number', '').strip()
+        address = request.POST.get('address', '').strip()
+        city = request.POST.get('city', 'Ahmedabad').strip() or 'Ahmedabad'
+        if not username or not password or not full_name or not mobile_number or not address:
+            messages.error(request, 'Please fill in all required fields.')
+            return render(request, 'register.html')
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already exists!')
+            return redirect('register')
+        if Customer.objects.filter(mobile_number=mobile_number).exists():
+            messages.error(request, 'This mobile number is already registered!')
             return redirect('register')
         user = User.objects.create_user(username=username, password=password)
         Customer.objects.create(
@@ -56,14 +65,20 @@ def register_customer(request):
 
 def register_mechanic(request):
     if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        full_name = request.POST['full_name']
-        mobile_number = request.POST['mobile_number']
-        address = request.POST['address']
-        skills = request.POST['skills']
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        full_name = request.POST.get('full_name', '').strip()
+        mobile_number = request.POST.get('mobile_number', '').strip()
+        address = request.POST.get('address', '').strip()
+        skills = request.POST.get('skills', '').strip()
+        if not username or not password or not full_name or not mobile_number or not address or not skills:
+            messages.error(request, 'Please fill in all required fields.')
+            return render(request, 'register_mechanic.html')
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already exists!')
+            return redirect('register_mechanic')
+        if Mechanic.objects.filter(mobile_number=mobile_number).exists():
+            messages.error(request, 'This mobile number is already registered!')
             return redirect('register_mechanic')
         user = User.objects.create_user(username=username, password=password)
         mechanic = Mechanic.objects.create(
@@ -105,17 +120,25 @@ def manage_mechanics(request):
 def approve_mechanic(request, pk):
     if not request.user.is_superuser:
         return redirect('home')
+    if request.method != 'POST':
+        return redirect('manage_mechanics')
     action = request.POST.get('action')
     mechanic = get_object_or_404(Mechanic, pk=pk)
     app = MechanicApplication.objects.filter(mechanic=mechanic).last()
     if action == 'approve':
         mechanic.account_status = 'Approved'
-        if app: app.status = 'Approved'
-    else:
+        if app:
+            app.status = 'Approved'
+    elif action == 'reject':
         mechanic.account_status = 'Rejected'
-        if app: app.status = 'Rejected'
+        if app:
+            app.status = 'Rejected'
+    else:
+        messages.error(request, 'Invalid action.')
+        return redirect('manage_mechanics')
     mechanic.save()
-    if app: app.save()
+    if app:
+        app.save()
     messages.success(request, f'Mechanic {action}d successfully!')
     return redirect('manage_mechanics')
 
@@ -131,9 +154,12 @@ def manage_attendance(request):
     if not request.user.is_superuser:
         return redirect('home')
     if request.method == 'POST':
-        mechanic_id = request.POST['mechanic_id']
-        date = request.POST['date']
-        status = request.POST['status']
+        mechanic_id = request.POST.get('mechanic_id')
+        date = request.POST.get('date')
+        status = request.POST.get('status')
+        if not mechanic_id or not date or status not in ('Present', 'Absent'):
+            messages.error(request, 'Please provide valid attendance details.')
+            return redirect('manage_attendance')
         mechanic = get_object_or_404(Mechanic, pk=mechanic_id)
         Attendance.objects.create(mechanic=mechanic, date=date, status=status)
         messages.success(request, 'Attendance marked!')
@@ -147,12 +173,22 @@ def manage_salary(request):
     if not request.user.is_superuser:
         return redirect('home')
     if request.method == 'POST':
-        mechanic_id = request.POST['mechanic_id']
-        month = request.POST['month']
-        amount = request.POST['amount']
-        payment_date = request.POST['payment_date']
+        mechanic_id = request.POST.get('mechanic_id')
+        month = request.POST.get('month', '').strip()
+        amount = request.POST.get('amount')
+        payment_date = request.POST.get('payment_date')
+        if not mechanic_id or not month or not amount or not payment_date:
+            messages.error(request, 'Please fill in all salary fields.')
+            return redirect('manage_salary')
+        try:
+            amount_value = float(amount)
+            if amount_value <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            messages.error(request, 'Please enter a valid positive amount.')
+            return redirect('manage_salary')
         mechanic = get_object_or_404(Mechanic, pk=mechanic_id)
-        SalaryPayment.objects.create(mechanic=mechanic, month=month, amount=amount, payment_date=payment_date)
+        SalaryPayment.objects.create(mechanic=mechanic, month=month, amount=amount_value, payment_date=payment_date)
         messages.success(request, 'Salary paid successfully!')
         return redirect('manage_salary')
     mechanics = Mechanic.objects.filter(account_status='Approved')

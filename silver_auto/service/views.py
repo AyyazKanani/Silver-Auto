@@ -9,15 +9,22 @@ from vehicles.models import Vehicle
 def create_request(request):
     customer = get_object_or_404(Customer, user=request.user)
     if request.method == 'POST':
-        vehicle_id = request.POST['vehicle_id']
-        problem_description = request.POST['problem_description']
-        preferred_date = request.POST['preferred_date']
-        service_type = request.POST.get('service_type', '')
-        vehicle = get_object_or_404(Vehicle, pk=vehicle_id)
-        price = ServicePrice.objects.filter(
-            service_type=service_type,
-            vehicle_type=vehicle.vehicle_type.type_name
-        ).first()
+        vehicle_id = request.POST.get('vehicle_id')
+        problem_description = request.POST.get('problem_description', '').strip()
+        preferred_date = request.POST.get('preferred_date') or None
+        service_type = request.POST.get('service_type', '').strip()
+        if not vehicle_id or not problem_description:
+            messages.error(request, 'Please select a vehicle and describe the problem.')
+            return redirect('create_request')
+        # Ensure the vehicle belongs to this customer (prevents ID tampering)
+        vehicle = get_object_or_404(Vehicle, pk=vehicle_id, customer=customer)
+        vehicle_type_name = vehicle.vehicle_type.type_name if vehicle.vehicle_type else ''
+        price = None
+        if service_type and vehicle_type_name:
+            price = ServicePrice.objects.filter(
+                service_type=service_type,
+                vehicle_type=vehicle_type_name
+            ).first()
         estimated_price = price.final_price if price else 0
         ServiceRequest.objects.create(
             customer=customer, vehicle=vehicle,
@@ -70,7 +77,10 @@ def assign_mechanic(request, pk):
     if not request.user.is_superuser:
         return redirect('home')
     if request.method == 'POST':
-        mechanic_id = request.POST['mechanic_id']
+        mechanic_id = request.POST.get('mechanic_id')
+        if not mechanic_id:
+            messages.error(request, 'Please select a mechanic.')
+            return redirect('all_requests')
         req = get_object_or_404(ServiceRequest, pk=pk)
         mechanic = get_object_or_404(Mechanic, pk=mechanic_id)
         ServiceAssignment.objects.create(request=req, mechanic=mechanic)
@@ -90,7 +100,10 @@ def update_job(request, pk):
     mechanic = get_object_or_404(Mechanic, user=request.user)
     if request.method == 'POST':
         assignment = get_object_or_404(ServiceAssignment, pk=pk, mechanic=mechanic)
-        status = request.POST['status']
+        status = request.POST.get('status')
+        if status not in ('In Progress', 'Completed'):
+            messages.error(request, 'Invalid job status.')
+            return redirect('mechanic_jobs')
         notes = request.POST.get('notes', '')
         repair, created = ServiceRepair.objects.get_or_create(request=assignment.request)
         repair.repair_notes = notes
@@ -107,8 +120,11 @@ def request_pickup(request, pk):
     customer = get_object_or_404(Customer, user=request.user)
     service_req = get_object_or_404(ServiceRequest, pk=pk, customer=customer)
     if request.method == 'POST':
-        pickup_address = request.POST['pickup_address']
-        pickup_time = request.POST['pickup_time']
+        pickup_address = request.POST.get('pickup_address', '').strip()
+        pickup_time = request.POST.get('pickup_time')
+        if not pickup_address or not pickup_time:
+            messages.error(request, 'Please provide pickup address and time.')
+            return render(request, 'customer/request_pickup.html', {'service_req': service_req})
         PickupDropRequest.objects.create(
             request=service_req,
             pickup_address=pickup_address,
@@ -146,7 +162,13 @@ def create_invoice(request, pk):
         return redirect('home')
     service_req = get_object_or_404(ServiceRequest, pk=pk)
     if request.method == 'POST':
-        total_amount = float(request.POST['total_amount'])
+        try:
+            total_amount = float(request.POST.get('total_amount', 0))
+            if total_amount <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            messages.error(request, 'Please enter a valid positive total amount.')
+            return render(request, 'admin/create_invoice.html', {'service_req': service_req})
         tax_amount = round(total_amount * 0.18, 2)
         grand_total = total_amount + tax_amount
         Invoice.objects.create(
@@ -169,7 +191,10 @@ def view_invoice(request, pk):
 def make_payment(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
     if request.method == 'POST':
-        method = request.POST['payment_method']
+        method = request.POST.get('payment_method')
+        if method not in ('Cash', 'UPI', 'Card'):
+            messages.error(request, 'Please select a valid payment method.')
+            return render(request, 'customer/payment.html', {'invoice': invoice})
         Payment.objects.create(invoice=invoice, payment_method=method, payment_status='Success')
         messages.success(request, 'Payment successful!')
         return redirect('my_requests')
@@ -180,8 +205,19 @@ def submit_feedback(request, pk):
     customer = get_object_or_404(Customer, user=request.user)
     service_req = get_object_or_404(ServiceRequest, pk=pk, customer=customer)
     if request.method == 'POST':
-        rating = request.POST['rating']
-        message = request.POST['message']
+        rating = request.POST.get('rating')
+        message = request.POST.get('message', '').strip()
+        try:
+            rating_value = int(rating)
+            if rating_value < 1 or rating_value > 5:
+                raise ValueError
+        except (ValueError, TypeError):
+            messages.error(request, 'Please give a rating between 1 and 5.')
+            return render(request, 'customer/feedback.html', {'service_req': service_req})
+        if not message:
+            messages.error(request, 'Please write a feedback message.')
+            return render(request, 'customer/feedback.html', {'service_req': service_req})
+        rating = rating_value
         Feedback.objects.create(
             customer=customer, request=service_req,
             rating=rating, message=message
